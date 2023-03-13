@@ -3,17 +3,17 @@ import requests
 import urllib.parse
 df = pd.read_excel('Eingabedatei.xlsx')  # Name der Datei eingeben
 Sigel= 'DE-6' #Sigel eingeben
-df['ISBN13'] = df['ISBN13'].apply(str)  # hier wird das ISBN-Feld zum "String". Dieses Format wird gebraucht, um die Anfrage machen zu können.
-df['ISBN13'] = df['ISBN13'].str.strip()  # dieser Befehl entfernt Leerzeichen am Anfang und Ende des Strings
+df['Spaltenname_ISBN'] = df['Spaltenname_ISBN'].apply(str)  # hier wird das ISBN-Feld zum "String". Dieses Format wird gebraucht, um die Anfrage machen zu können.
+df['Spaltenname_ISBN'] = df['Spaltenname_ISBN'].str.strip()  # dieser Befehl entfernt Leerzeichen am Anfang und Ende des Strings
 count = 0
 Bestand_vorhanden = []
 Signatur = []
 for index, j in df.iterrows():
-    Suchbegriff = j['ISBN13']
+    Suchbegriff = j['Spaltenname_ISBN']
     print(count)
     count = count + 1
     Suchstring = '(hasItem.heldBy.id:http\:\/\/lobid.org\/organisations\/{sigel}#\!) AND (related.isbn:{s1} OR isbn:{s1})'.format(
-        sigel=Sigel, s1=j['ISBN13'])
+        sigel=Sigel, s1=Suchbegriff)
     Suchstring = urllib.parse.quote(Suchstring)
 
     url = 'https://test.lobid.org/resources/search?q=' + Suchstring + 'format=json'
