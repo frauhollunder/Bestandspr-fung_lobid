@@ -1,0 +1,45 @@
+import pandas as pd
+import requests
+import urllib.parse
+df = pd.read_excel('Eingabedatei.xlsx')  # Name der Datei eingeben
+Sigel= 'DE-6' #Sigel eingeben
+df['ISBN13'] = df['ISBN13'].apply(str)  # hier wird das ISBN-Feld zum "String". Dieses Format wird gebraucht, um die Anfrage machen zu können.
+df['ISBN13'] = df['ISBN13'].str.strip()  # dieser Befehl entfernt Leerzeichen am Anfang und Ende des Strings
+count = 0
+Bestand_vorhanden = []
+Signatur = []
+for index, j in df.iterrows():
+    Suchbegriff = j['ISBN13']
+    print(count)
+    count = count + 1
+    Suchstring = '(hasItem.heldBy.id:http\:\/\/lobid.org\/organisations\/{sigel}#\!) AND (related.isbn:{s1} OR isbn:{s1})'.format(
+        sigel=Sigel, s1=j['ISBN13'])
+    Suchstring = urllib.parse.quote(Suchstring)
+
+    url = 'https://test.lobid.org/resources/search?q=' + Suchstring + 'format=json'
+    try:
+        response = requests.get(url=url)
+        data = response.json()
+        if response.status_code == 200 and data['totalItems'] > 0:
+            Bestand_vorhanden.append('ja')
+            Signatur_2 = []
+            for i in data['member']:
+                for j in i['hasItem']:
+                    if Sigel in j['heldBy']['id'] or Sigel + '#' in j['heldBy']['id']:
+                        if 'Electronic Portfolio' in j['label']:
+                            Signatur_2.append('Online-Ressource')
+                        else:
+                            if 'callNumber' in j:
+                                Signatur_2.append(j['callNumber'])
+                            else:
+                                Signatur_2.append('keine Signatur')
+            Signatur.append(' | '.join(list(set(Signatur_2))))
+        else:
+            Bestand_vorhanden.append('nein')
+            Signatur.append('kein Bestand')
+    except requests.exceptions.ConnectionError:
+        Bestand_vorhanden.append('keine Antwort')
+        Signatur.append('keine Signatur')
+df['Bestand vorhanden'] = Bestand_vorhanden
+df['Signatur'] = Signatur
+df.to_csv('Ergebnis_2.csv', sep=';')  # hier kann der Name der Ausgabedatei eingetragen werden
