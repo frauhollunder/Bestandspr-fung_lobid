@@ -17,29 +17,40 @@ for index, j in df.iterrows():
     Suchstring = urllib.parse.quote(Suchstring)
 
     url = 'https://test.lobid.org/resources/search?q=' + Suchstring + 'format=json'
-    try:
-        response = requests.get(url=url)
-        data = response.json()
-        if response.status_code == 200 and data['totalItems'] > 0:
-            Bestand_vorhanden.append('ja')
-            Signatur_2 = []
-            for i in data['member']:
-                for j in i['hasItem']:
-                    if Sigel in j['heldBy']['id'] or Sigel + '#' in j['heldBy']['id']:
-                        if 'Electronic Portfolio' in j['label']:
-                            Signatur_2.append('Online-Ressource')
-                        else:
-                            if 'callNumber' in j:
-                                Signatur_2.append(j['callNumber'])
-                            else:
-                                Signatur_2.append('keine Signatur')
-            Signatur.append(' | '.join(list(set(Signatur_2))))
-        else:
-            Bestand_vorhanden.append('nein')
-            Signatur.append('kein Bestand')
-    except requests.exceptions.ConnectionError:
+
+    retries = 3
+    while retries:
+        try:
+            response = requests.get(url=url, timeout=3)
+            break
+        except requests.exceptions.ConnectionError:
+            retries = retries - 1
+            pass
+
+    if not retries:
         Bestand_vorhanden.append('keine Antwort')
         Signatur.append('keine Signatur')
+        continue
+
+    data = response.json()
+    if response.status_code == 200 and data['totalItems'] > 0:
+        Bestand_vorhanden.append('ja')
+        Signatur_2 = []
+        for i in data['member']:
+            for j in i['hasItem']:
+                if Sigel in j['heldBy']['id'] or Sigel + '#' in j['heldBy']['id']:
+                    if 'Electronic Portfolio' in j['label']:
+                        Signatur_2.append('Online-Ressource')
+                    else:
+                        if 'callNumber' in j:
+                            Signatur_2.append(j['callNumber'])
+                        else:
+                            Signatur_2.append('keine Signatur')
+        Signatur.append(' | '.join(list(set(Signatur_2))))
+    else:
+        Bestand_vorhanden.append('nein')
+        Signatur.append('kein Bestand')
+
 df['Bestand vorhanden'] = Bestand_vorhanden
 df['Signatur'] = Signatur
 df.to_csv('Ergebnis_2.csv', sep=';')  # hier kann der Name der Ausgabedatei eingetragen werden
