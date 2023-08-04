@@ -9,14 +9,14 @@ count = 0
 Bestand_vorhanden = []
 Signatur = []
 for index, j in df.iterrows():
-    Suchbegriff = j['Spaltenname_ISBN']
+    Suchbegriff = j['ISBN-13']
     print(count)
     count = count + 1
-    Suchstring = '(hasItem.heldBy.id:http\:\/\/lobid.org\/organisations\/{sigel}#\!) AND (related.isbn:{s1} OR isbn:{s1})'.format(
+    Suchstring = '(hasItem.heldBy.id:http\:\/\/lobid.org\/organisations\/{sigel}-*\#\! OR hasItem.heldBy.id:http\:\/\/lobid.org\/organisations\/{sigel}\#\!) AND (related.isbn:{s1} OR isbn:{s1})'.format(
         sigel=Sigel, s1=Suchbegriff)
     Suchstring = urllib.parse.quote(Suchstring)
 
-    url = 'https://test.lobid.org/resources/search?q=' + Suchstring + 'format=json'
+    url = 'https://lobid.org/resources/search?q=' + Suchstring + 'format=json'
     try:
         response = requests.get(url=url)
         data = response.json()
