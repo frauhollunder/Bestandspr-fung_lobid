@@ -9,7 +9,7 @@ count = 0
 Bestand_vorhanden = []
 Signatur = []
 for index, j in df.iterrows():
-    Suchbegriff = j['ISBN-13']
+    Suchbegriff = j['Spaltenname_ISBN']
     print(count)
     count = count + 1
     Suchstring = '(hasItem.heldBy.id:http\:\/\/lobid.org\/organisations\/{sigel}-*\#\! OR hasItem.heldBy.id:http\:\/\/lobid.org\/organisations\/{sigel}\#\!) AND (related.isbn:{s1} OR isbn:{s1})'.format(
